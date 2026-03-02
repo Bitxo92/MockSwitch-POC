@@ -197,9 +197,9 @@ class AgendaRead(PrettyModel):
     
     Campos de la tabla:
         - id (int): Campo id de la tabla agenda
-        - nombre (str): Nombre del usuario
-        - correo (str): Correo electrónico del usuario
-        - telefono (str): Número de teléfono del usuario
+        - name (str): Nombre del usuario
+        - email (str): Correo electrónico del usuario
+        - phone (str): Número de teléfono del usuario
     
     
     Rendimiento:
@@ -211,15 +211,15 @@ class AgendaRead(PrettyModel):
         description="Campo id de la tabla agenda",
     )
 
-    nombre: str = Field(
+    name: str = Field(
         description="Nombre del usuario",
     )
 
-    correo: str = Field(
+    email: str = Field(
         description="Correo electrónico del usuario",
     )
 
-    telefono: str = Field(
+    phone: str = Field(
         description="Número de teléfono del usuario",
     )
 
@@ -261,9 +261,9 @@ class AgendaRead(PrettyModel):
         # Construir DTO base
         dto_data = {
             'id': instance.id,
-            'nombre': instance.nombre,
-            'correo': instance.correo,
-            'telefono': instance.telefono,
+            'name': instance.name,
+            'email': instance.email,
+            'phone': instance.phone,
         }
 
         return cls(**dto_data)
@@ -285,9 +285,9 @@ class AgendaRead(PrettyModel):
         # Construir DTO base
         dto_data = {
             'id': instance.id,
-            'nombre': instance.nombre,
-            'correo': instance.correo,
-            'telefono': instance.telefono,
+            'name': instance.name,
+            'email': instance.email,
+            'phone': instance.phone,
         }
 
         return cls(**dto_data)
@@ -311,9 +311,9 @@ class AgendaRead(PrettyModel):
 
 class AgendaCreate(PrettyModel):
     """Data Transfer Object de escritura para Agenda. Define objetos para ser creados en la base de datos."""
-    nombre: str
-    correo: str
-    telefono: str
+    name: str
+    email: str
+    phone: str
 
 
     model_config = ConfigDict(
@@ -340,9 +340,9 @@ class AgendaCreate(PrettyModel):
         """
 
         model = Agenda(
-            nombre=self.nombre,
-            correo=self.correo,
-            telefono=self.telefono,
+            name=self.name,
+            email=self.email,
+            phone=self.phone,
         )
         
         # Evaluación lazy de relaciones costosas
@@ -369,9 +369,9 @@ class AgendaCreate(PrettyModel):
 class AgendaFilter(PrettyModel):
     """Data Transfer Object de actualización para Agenda.
     Define los filtros que sirven para buscar registros en la DB."""
-    nombre: str = None
-    correo: str = None
-    telefono: str = None
+    name: str = None
+    email: str = None
+    phone: str = None
 
     model_config = ConfigDict(
         # Performance optimizations
@@ -395,9 +395,9 @@ class AgendaFilter(PrettyModel):
 class AgendaUpdateValues(PrettyModel):
     """Data Transfer Object de actualización para Agenda.
     Define los valores que se modificarán en los registros correspondientes."""
-    nombre: str = None
-    correo: str = None
-    telefono: str = None
+    name: str = None
+    email: str = None
+    phone: str = None
 
     model_config = ConfigDict(
         # Performance optimizations
@@ -466,19 +466,19 @@ class AgendaDataFrameValidator:
                 'primary_key': True,
                 'autoincrement': True
             },
-            'nombre': {
+            'name': {
                 'type': 'str',
                 'nullable': False,
                 'primary_key': False,
                 'autoincrement': False
             },
-            'correo': {
+            'email': {
                 'type': 'str',
                 'nullable': False,
                 'primary_key': False,
                 'autoincrement': False
             },
-            'telefono': {
+            'phone': {
                 'type': 'str',
                 'nullable': False,
                 'primary_key': False,
@@ -544,19 +544,19 @@ class AgendaDataFrameValidator:
                     'int64', 'Int64', 'int32', 'Int32', 'int16', 'Int16', 'int8', 'Int8', 'object'
                 ]
             },
-            'nombre': {
+            'name': {
                 'sqlalchemy_type': 'str',
                 'compatible_pandas_types': [
                     'object', 'string', 'category'
                 ]
             },
-            'correo': {
+            'email': {
                 'sqlalchemy_type': 'str',
                 'compatible_pandas_types': [
                     'object', 'string', 'category'
                 ]
             },
-            'telefono': {
+            'phone': {
                 'sqlalchemy_type': 'str',
                 'compatible_pandas_types': [
                     'object', 'string', 'category'
@@ -664,15 +664,15 @@ class AgendaDataFrameValidator:
                 'nullable': False,
                 'autoincrement': True
             },
-            'nombre': {
+            'name': {
                 'nullable': False,
                 'autoincrement': False
             },
-            'correo': {
+            'email': {
                 'nullable': False,
                 'autoincrement': False
             },
-            'telefono': {
+            'phone': {
                 'nullable': False,
                 'autoincrement': False
             }

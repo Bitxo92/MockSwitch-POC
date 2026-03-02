@@ -35,9 +35,9 @@ agenda_router = APIRouter(
                     "operationId": "agenda_find_many",
                     "description": "Enlace a la consulta actual con los mismos filtros",
                     "parameters": {
-                        "nombre": "$request.query.nombre",
-                        "correo": "$request.query.correo",
-                        "telefono": "$request.query.telefono",
+                        "name": "$request.query.name",
+                        "email": "$request.query.email",
+                        "phone": "$request.query.phone",
                         "limit": "$request.query.limit",
                         "offset": "$request.query.offset",
                         "order_by": "$request.query.order_by",
@@ -61,9 +61,9 @@ agenda_router = APIRouter(
                     "operationId": "agenda_count",
                     "description": "Enlace para obtener el conteo total con los mismos filtros",
                     "parameters": {
-                        "nombre": "$request.query.nombre",
-                        "correo": "$request.query.correo",
-                        "telefono": "$request.query.telefono",
+                        "name": "$request.query.name",
+                        "email": "$request.query.email",
+                        "phone": "$request.query.phone",
                     }
                 }}
         },
@@ -116,12 +116,12 @@ async def agenda_find_many(
     order_by: List[str] = Query(None, description="Lista de nombres de columnas para ordenar los resultados. Si no existen serán omitidas."),
     order: Optional[Literal["ASC", "DESC"]] = Query("ASC", description="Dirección de ordenamiento: 'ASC' para ascendente (por defecto), 'DESC' para descendente. Solo aplica si order_by está definido", regex="^(ASC|DESC)$"),
     offset: Optional[int] = Query(None, description="Número de registros a omitir desde el inicio. Útil para paginación. Debe ser un valor no negativo", ge=0),
-    nombre: Optional[str] = Query(None, description='Filtrar por nombre. Utiliza "%nombre%" para hacer consultas ILIKE. Nombre del usuario', min_length=1, max_length=255),
-    in_nombre: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna nombre. Nombre del usuario'),
-    correo: Optional[str] = Query(None, description='Filtrar por correo. Utiliza "%correo%" para hacer consultas ILIKE. Correo electrónico del usuario', min_length=1, max_length=255),
-    in_correo: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna correo. Correo electrónico del usuario'),
-    telefono: Optional[str] = Query(None, description='Filtrar por telefono. Utiliza "%telefono%" para hacer consultas ILIKE. Número de teléfono del usuario', min_length=1, max_length=255),
-    in_telefono: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna telefono. Número de teléfono del usuario'),
+    name: Optional[str] = Query(None, description='Filtrar por name. Utiliza "%name%" para hacer consultas ILIKE. Nombre del usuario', min_length=1, max_length=255),
+    in_name: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna name. Nombre del usuario'),
+    email: Optional[str] = Query(None, description='Filtrar por email. Utiliza "%email%" para hacer consultas ILIKE. Correo electrónico del usuario', min_length=1, max_length=255),
+    in_email: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna email. Correo electrónico del usuario'),
+    phone: Optional[str] = Query(None, description='Filtrar por phone. Utiliza "%phone%" para hacer consultas ILIKE. Número de teléfono del usuario', min_length=1, max_length=255),
+    in_phone: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna phone. Número de teléfono del usuario'),
     includes: List[str] = Query(None, description="Lista de relaciones a incluir en la respuesta para obtener datos relacionados. Especifica los nombres de las relaciones que deseas expandir"),
 
     api: PublicAsyncDBAPI = Depends(PublicAsyncDBAPI)
@@ -140,19 +140,19 @@ async def agenda_find_many(
     ## Datos
     Para cada registro en `data` se incluye:
     - **id** (int): Campo id de la tabla agenda
-    - **nombre** (str): Nombre del usuario
-    - **correo** (str): Correo electrónico del usuario
-    - **telefono** (str): Número de teléfono del usuario
+    - **name** (str): Nombre del usuario
+    - **email** (str): Correo electrónico del usuario
+    - **phone** (str): Número de teléfono del usuario
     
     ## Parámetros de Filtrado
     
     Todos los parámetros de filtrado son opcionales y se pueden combinar:
-    - **nombre**: Filtrar por nombre. Utilizar "%nombre%" para hacer consultas ILIKE.
-    - **in_nombre**: Filtrar por varios valores de la columna nombre
-    - **correo**: Filtrar por correo. Utilizar "%correo%" para hacer consultas ILIKE.
-    - **in_correo**: Filtrar por varios valores de la columna correo
-    - **telefono**: Filtrar por telefono. Utilizar "%telefono%" para hacer consultas ILIKE.
-    - **in_telefono**: Filtrar por varios valores de la columna telefono
+    - **name**: Filtrar por name. Utilizar "%name%" para hacer consultas ILIKE.
+    - **in_name**: Filtrar por varios valores de la columna name
+    - **email**: Filtrar por email. Utilizar "%email%" para hacer consultas ILIKE.
+    - **in_email**: Filtrar por varios valores de la columna email
+    - **phone**: Filtrar por phone. Utilizar "%phone%" para hacer consultas ILIKE.
+    - **in_phone**: Filtrar por varios valores de la columna phone
 
     
     ## Parámetros de Paginación
@@ -175,12 +175,12 @@ async def agenda_find_many(
         offset=offset,
         order_by=order_by,
         order=order,
-        nombre=nombre,
-        in_nombre=in_nombre,
-        correo=correo,
-        in_correo=in_correo,
-        telefono=telefono,
-        in_telefono=in_telefono,
+        name=name,
+        in_name=in_name,
+        email=email,
+        in_email=in_email,
+        phone=phone,
+        in_phone=in_phone,
         includes=includes,
         
     )
@@ -190,12 +190,12 @@ async def agenda_find_many(
     if limit is not None or offset is not None:
         try:
             total = await api.agenda.count(
-                nombre=nombre,
-                in_nombre=in_nombre,
-                correo=correo,
-                in_correo=in_correo,
-                telefono=telefono,
-                in_telefono=in_telefono,
+                name=name,
+                in_name=in_name,
+                email=email,
+                in_email=in_email,
+                phone=phone,
+                in_phone=in_phone,
             )
         except Exception as e:
             logger.warning(f"No se pudo obtener el total de registros: {str(e)}")
@@ -252,12 +252,12 @@ async def agenda_find_many(
     }
 )
 async def agenda_count(
-    nombre: Optional[str] = Query(None, description='Filtrar por nombre. Utiliza "%nombre%" para hacer consultas ILIKE. Nombre del usuario', min_length=1, max_length=255),
-    in_nombre: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna nombre. Nombre del usuario'),
-    correo: Optional[str] = Query(None, description='Filtrar por correo. Utiliza "%correo%" para hacer consultas ILIKE. Correo electrónico del usuario', min_length=1, max_length=255),
-    in_correo: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna correo. Correo electrónico del usuario'),
-    telefono: Optional[str] = Query(None, description='Filtrar por telefono. Utiliza "%telefono%" para hacer consultas ILIKE. Número de teléfono del usuario', min_length=1, max_length=255),
-    in_telefono: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna telefono. Número de teléfono del usuario'),
+    name: Optional[str] = Query(None, description='Filtrar por name. Utiliza "%name%" para hacer consultas ILIKE. Nombre del usuario', min_length=1, max_length=255),
+    in_name: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna name. Nombre del usuario'),
+    email: Optional[str] = Query(None, description='Filtrar por email. Utiliza "%email%" para hacer consultas ILIKE. Correo electrónico del usuario', min_length=1, max_length=255),
+    in_email: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna email. Correo electrónico del usuario'),
+    phone: Optional[str] = Query(None, description='Filtrar por phone. Utiliza "%phone%" para hacer consultas ILIKE. Número de teléfono del usuario', min_length=1, max_length=255),
+    in_phone: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna phone. Número de teléfono del usuario'),
 
     api: PublicAsyncDBAPI = Depends(PublicAsyncDBAPI)
 ) -> APIResponse[int]:
@@ -265,12 +265,12 @@ async def agenda_count(
     Cuenta el número de Agendas que coinciden con los filtros.
     """
     result = await api.agenda.count(
-        nombre=nombre,
-        in_nombre=in_nombre,
-        correo=correo,
-        in_correo=in_correo,
-        telefono=telefono,
-        in_telefono=in_telefono,
+        name=name,
+        in_name=in_name,
+        email=email,
+        in_email=in_email,
+        phone=phone,
+        in_phone=in_phone,
     )
     
     return APIResponse.success(
@@ -321,12 +321,12 @@ async def agenda_count(
     }
 )
 async def agenda_exists(
-    nombre: Optional[str] = Query(None, description='Filtrar por nombre. Utiliza "%nombre%" para hacer consultas ILIKE. Nombre del usuario', min_length=1, max_length=255),
-    in_nombre: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna nombre. Nombre del usuario'),
-    correo: Optional[str] = Query(None, description='Filtrar por correo. Utiliza "%correo%" para hacer consultas ILIKE. Correo electrónico del usuario', min_length=1, max_length=255),
-    in_correo: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna correo. Correo electrónico del usuario'),
-    telefono: Optional[str] = Query(None, description='Filtrar por telefono. Utiliza "%telefono%" para hacer consultas ILIKE. Número de teléfono del usuario', min_length=1, max_length=255),
-    in_telefono: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna telefono. Número de teléfono del usuario'),
+    name: Optional[str] = Query(None, description='Filtrar por name. Utiliza "%name%" para hacer consultas ILIKE. Nombre del usuario', min_length=1, max_length=255),
+    in_name: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna name. Nombre del usuario'),
+    email: Optional[str] = Query(None, description='Filtrar por email. Utiliza "%email%" para hacer consultas ILIKE. Correo electrónico del usuario', min_length=1, max_length=255),
+    in_email: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna email. Correo electrónico del usuario'),
+    phone: Optional[str] = Query(None, description='Filtrar por phone. Utiliza "%phone%" para hacer consultas ILIKE. Número de teléfono del usuario', min_length=1, max_length=255),
+    in_phone: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna phone. Número de teléfono del usuario'),
 
     api: PublicAsyncDBAPI = Depends(PublicAsyncDBAPI)
 ) -> APIResponse[bool]:
@@ -334,12 +334,12 @@ async def agenda_exists(
     Verifica si existe al menos un agenda que coincida con los filtros.
     """
     result = await api.agenda.exists(
-        nombre=nombre,
-        in_nombre=in_nombre,
-        correo=correo,
-        in_correo=in_correo,
-        telefono=telefono,
-        in_telefono=in_telefono,
+        name=name,
+        in_name=in_name,
+        email=email,
+        in_email=in_email,
+        phone=phone,
+        in_phone=in_phone,
     )
     
     return APIResponse.success(
@@ -412,12 +412,12 @@ async def agenda_exists(
 )
 async def agenda_sum_field(
     field: str = Path(..., description="Nombre del campo numérico a sumar"),
-    nombre: Optional[str] = Query(None, description='Filtrar por nombre. Utiliza "%nombre%" para hacer consultas ILIKE. Nombre del usuario', min_length=1, max_length=255),
-    in_nombre: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna nombre. Nombre del usuario'),
-    correo: Optional[str] = Query(None, description='Filtrar por correo. Utiliza "%correo%" para hacer consultas ILIKE. Correo electrónico del usuario', min_length=1, max_length=255),
-    in_correo: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna correo. Correo electrónico del usuario'),
-    telefono: Optional[str] = Query(None, description='Filtrar por telefono. Utiliza "%telefono%" para hacer consultas ILIKE. Número de teléfono del usuario', min_length=1, max_length=255),
-    in_telefono: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna telefono. Número de teléfono del usuario'),
+    name: Optional[str] = Query(None, description='Filtrar por name. Utiliza "%name%" para hacer consultas ILIKE. Nombre del usuario', min_length=1, max_length=255),
+    in_name: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna name. Nombre del usuario'),
+    email: Optional[str] = Query(None, description='Filtrar por email. Utiliza "%email%" para hacer consultas ILIKE. Correo electrónico del usuario', min_length=1, max_length=255),
+    in_email: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna email. Correo electrónico del usuario'),
+    phone: Optional[str] = Query(None, description='Filtrar por phone. Utiliza "%phone%" para hacer consultas ILIKE. Número de teléfono del usuario', min_length=1, max_length=255),
+    in_phone: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna phone. Número de teléfono del usuario'),
 
     api: PublicAsyncDBAPI = Depends(PublicAsyncDBAPI)
 ) -> APIResponse[Union[int, float]]:
@@ -435,12 +435,12 @@ async def agenda_sum_field(
     ## Filtros Opcionales
     
     Todos los filtros de búsqueda estándar están disponibles:
-    - **nombre**: Filtrar por nombre. Utilizar "%nombre%" para hacer consultas ILIKE.
-    - **in_nombre**: Filtrar por varios valores de la columna nombre
-    - **correo**: Filtrar por correo. Utilizar "%correo%" para hacer consultas ILIKE.
-    - **in_correo**: Filtrar por varios valores de la columna correo
-    - **telefono**: Filtrar por telefono. Utilizar "%telefono%" para hacer consultas ILIKE.
-    - **in_telefono**: Filtrar por varios valores de la columna telefono
+    - **name**: Filtrar por name. Utilizar "%name%" para hacer consultas ILIKE.
+    - **in_name**: Filtrar por varios valores de la columna name
+    - **email**: Filtrar por email. Utilizar "%email%" para hacer consultas ILIKE.
+    - **in_email**: Filtrar por varios valores de la columna email
+    - **phone**: Filtrar por phone. Utilizar "%phone%" para hacer consultas ILIKE.
+    - **in_phone**: Filtrar por varios valores de la columna phone
 
     
     ## Resultado
@@ -459,12 +459,12 @@ async def agenda_sum_field(
     """
     result = await api.agenda.sum(
         agg_fields=[field],
-        nombre=nombre,
-        in_nombre=in_nombre,
-        correo=correo,
-        in_correo=in_correo,
-        telefono=telefono,
-        in_telefono=in_telefono,
+        name=name,
+        in_name=in_name,
+        email=email,
+        in_email=in_email,
+        phone=phone,
+        in_phone=in_phone,
     )
     
     # Verificar si la operación fue exitosa
@@ -554,12 +554,12 @@ async def agenda_sum_field(
 )
 async def agenda_mean_field(
     field: str = Path(..., description="Nombre del campo numérico para calcular la media"),
-    nombre: Optional[str] = Query(None, description='Filtrar por nombre. Utiliza "%nombre%" para hacer consultas ILIKE. Nombre del usuario', min_length=1, max_length=255),
-    in_nombre: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna nombre. Nombre del usuario'),
-    correo: Optional[str] = Query(None, description='Filtrar por correo. Utiliza "%correo%" para hacer consultas ILIKE. Correo electrónico del usuario', min_length=1, max_length=255),
-    in_correo: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna correo. Correo electrónico del usuario'),
-    telefono: Optional[str] = Query(None, description='Filtrar por telefono. Utiliza "%telefono%" para hacer consultas ILIKE. Número de teléfono del usuario', min_length=1, max_length=255),
-    in_telefono: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna telefono. Número de teléfono del usuario'),
+    name: Optional[str] = Query(None, description='Filtrar por name. Utiliza "%name%" para hacer consultas ILIKE. Nombre del usuario', min_length=1, max_length=255),
+    in_name: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna name. Nombre del usuario'),
+    email: Optional[str] = Query(None, description='Filtrar por email. Utiliza "%email%" para hacer consultas ILIKE. Correo electrónico del usuario', min_length=1, max_length=255),
+    in_email: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna email. Correo electrónico del usuario'),
+    phone: Optional[str] = Query(None, description='Filtrar por phone. Utiliza "%phone%" para hacer consultas ILIKE. Número de teléfono del usuario', min_length=1, max_length=255),
+    in_phone: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna phone. Número de teléfono del usuario'),
 
     api: PublicAsyncDBAPI = Depends(PublicAsyncDBAPI)
 ) -> APIResponse[float]:
@@ -577,12 +577,12 @@ async def agenda_mean_field(
     ## Filtros Opcionales
     
     Todos los filtros de búsqueda estándar están disponibles:
-    - **nombre**: Filtrar por nombre. Utilizar "%nombre%" para hacer consultas ILIKE.
-    - **in_nombre**: Filtrar por varios valores de la columna nombre
-    - **correo**: Filtrar por correo. Utilizar "%correo%" para hacer consultas ILIKE.
-    - **in_correo**: Filtrar por varios valores de la columna correo
-    - **telefono**: Filtrar por telefono. Utilizar "%telefono%" para hacer consultas ILIKE.
-    - **in_telefono**: Filtrar por varios valores de la columna telefono
+    - **name**: Filtrar por name. Utilizar "%name%" para hacer consultas ILIKE.
+    - **in_name**: Filtrar por varios valores de la columna name
+    - **email**: Filtrar por email. Utilizar "%email%" para hacer consultas ILIKE.
+    - **in_email**: Filtrar por varios valores de la columna email
+    - **phone**: Filtrar por phone. Utilizar "%phone%" para hacer consultas ILIKE.
+    - **in_phone**: Filtrar por varios valores de la columna phone
 
     
     ## Resultado
@@ -601,12 +601,12 @@ async def agenda_mean_field(
     """
     result = await api.agenda.mean(
         agg_fields=[field],
-        nombre=nombre,
-        in_nombre=in_nombre,
-        correo=correo,
-        in_correo=in_correo,
-        telefono=telefono,
-        in_telefono=in_telefono,
+        name=name,
+        in_name=in_name,
+        email=email,
+        in_email=in_email,
+        phone=phone,
+        in_phone=in_phone,
     )
     
     # Verificar si la operación fue exitosa
@@ -696,12 +696,12 @@ async def agenda_mean_field(
 )
 async def agenda_max_field(
     field: str = Path(..., description="Nombre del campo para encontrar el valor máximo"),
-    nombre: Optional[str] = Query(None, description='Filtrar por nombre. Utiliza "%nombre%" para hacer consultas ILIKE. Nombre del usuario', min_length=1, max_length=255),
-    in_nombre: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna nombre. Nombre del usuario'),
-    correo: Optional[str] = Query(None, description='Filtrar por correo. Utiliza "%correo%" para hacer consultas ILIKE. Correo electrónico del usuario', min_length=1, max_length=255),
-    in_correo: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna correo. Correo electrónico del usuario'),
-    telefono: Optional[str] = Query(None, description='Filtrar por telefono. Utiliza "%telefono%" para hacer consultas ILIKE. Número de teléfono del usuario', min_length=1, max_length=255),
-    in_telefono: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna telefono. Número de teléfono del usuario'),
+    name: Optional[str] = Query(None, description='Filtrar por name. Utiliza "%name%" para hacer consultas ILIKE. Nombre del usuario', min_length=1, max_length=255),
+    in_name: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna name. Nombre del usuario'),
+    email: Optional[str] = Query(None, description='Filtrar por email. Utiliza "%email%" para hacer consultas ILIKE. Correo electrónico del usuario', min_length=1, max_length=255),
+    in_email: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna email. Correo electrónico del usuario'),
+    phone: Optional[str] = Query(None, description='Filtrar por phone. Utiliza "%phone%" para hacer consultas ILIKE. Número de teléfono del usuario', min_length=1, max_length=255),
+    in_phone: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna phone. Número de teléfono del usuario'),
 
     api: PublicAsyncDBAPI = Depends(PublicAsyncDBAPI)
 ) -> APIResponse[Optional[Union[int, float, str]]]:
@@ -719,12 +719,12 @@ async def agenda_max_field(
     ## Filtros Opcionales
     
     Todos los filtros de búsqueda estándar están disponibles:
-    - **nombre**: Filtrar por nombre. Utilizar "%nombre%" para hacer consultas ILIKE.
-    - **in_nombre**: Filtrar por varios valores de la columna nombre
-    - **correo**: Filtrar por correo. Utilizar "%correo%" para hacer consultas ILIKE.
-    - **in_correo**: Filtrar por varios valores de la columna correo
-    - **telefono**: Filtrar por telefono. Utilizar "%telefono%" para hacer consultas ILIKE.
-    - **in_telefono**: Filtrar por varios valores de la columna telefono
+    - **name**: Filtrar por name. Utilizar "%name%" para hacer consultas ILIKE.
+    - **in_name**: Filtrar por varios valores de la columna name
+    - **email**: Filtrar por email. Utilizar "%email%" para hacer consultas ILIKE.
+    - **in_email**: Filtrar por varios valores de la columna email
+    - **phone**: Filtrar por phone. Utilizar "%phone%" para hacer consultas ILIKE.
+    - **in_phone**: Filtrar por varios valores de la columna phone
 
     
     ## Resultado
@@ -744,12 +744,12 @@ async def agenda_max_field(
     """
     result = await api.agenda.max(
         agg_fields=[field],
-        nombre=nombre,
-        in_nombre=in_nombre,
-        correo=correo,
-        in_correo=in_correo,
-        telefono=telefono,
-        in_telefono=in_telefono,
+        name=name,
+        in_name=in_name,
+        email=email,
+        in_email=in_email,
+        phone=phone,
+        in_phone=in_phone,
     )
     
     # Verificar si la operación fue exitosa
@@ -839,12 +839,12 @@ async def agenda_max_field(
 )
 async def agenda_min_field(
     field: str = Path(..., description="Nombre del campo para encontrar el valor mínimo"),
-    nombre: Optional[str] = Query(None, description='Filtrar por nombre. Utiliza "%nombre%" para hacer consultas ILIKE. Nombre del usuario', min_length=1, max_length=255),
-    in_nombre: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna nombre. Nombre del usuario'),
-    correo: Optional[str] = Query(None, description='Filtrar por correo. Utiliza "%correo%" para hacer consultas ILIKE. Correo electrónico del usuario', min_length=1, max_length=255),
-    in_correo: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna correo. Correo electrónico del usuario'),
-    telefono: Optional[str] = Query(None, description='Filtrar por telefono. Utiliza "%telefono%" para hacer consultas ILIKE. Número de teléfono del usuario', min_length=1, max_length=255),
-    in_telefono: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna telefono. Número de teléfono del usuario'),
+    name: Optional[str] = Query(None, description='Filtrar por name. Utiliza "%name%" para hacer consultas ILIKE. Nombre del usuario', min_length=1, max_length=255),
+    in_name: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna name. Nombre del usuario'),
+    email: Optional[str] = Query(None, description='Filtrar por email. Utiliza "%email%" para hacer consultas ILIKE. Correo electrónico del usuario', min_length=1, max_length=255),
+    in_email: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna email. Correo electrónico del usuario'),
+    phone: Optional[str] = Query(None, description='Filtrar por phone. Utiliza "%phone%" para hacer consultas ILIKE. Número de teléfono del usuario', min_length=1, max_length=255),
+    in_phone: Optional[List[str]] = Query(None, description='Filtrar por varios valores de la columna phone. Número de teléfono del usuario'),
 
     api: PublicAsyncDBAPI = Depends(PublicAsyncDBAPI)
 ) -> APIResponse[Optional[Union[int, float, str]]]:
@@ -862,12 +862,12 @@ async def agenda_min_field(
     ## Filtros Opcionales
     
     Todos los filtros de búsqueda estándar están disponibles:
-    - **nombre**: Filtrar por nombre. Utilizar "%nombre%" para hacer consultas ILIKE.
-    - **in_nombre**: Filtrar por varios valores de la columna nombre
-    - **correo**: Filtrar por correo. Utilizar "%correo%" para hacer consultas ILIKE.
-    - **in_correo**: Filtrar por varios valores de la columna correo
-    - **telefono**: Filtrar por telefono. Utilizar "%telefono%" para hacer consultas ILIKE.
-    - **in_telefono**: Filtrar por varios valores de la columna telefono
+    - **name**: Filtrar por name. Utilizar "%name%" para hacer consultas ILIKE.
+    - **in_name**: Filtrar por varios valores de la columna name
+    - **email**: Filtrar por email. Utilizar "%email%" para hacer consultas ILIKE.
+    - **in_email**: Filtrar por varios valores de la columna email
+    - **phone**: Filtrar por phone. Utilizar "%phone%" para hacer consultas ILIKE.
+    - **in_phone**: Filtrar por varios valores de la columna phone
 
     
     ## Resultado
@@ -887,12 +887,12 @@ async def agenda_min_field(
     """
     result = await api.agenda.min(
         agg_fields=[field],
-        nombre=nombre,
-        in_nombre=in_nombre,
-        correo=correo,
-        in_correo=in_correo,
-        telefono=telefono,
-        in_telefono=in_telefono,
+        name=name,
+        in_name=in_name,
+        email=email,
+        in_email=in_email,
+        phone=phone,
+        in_phone=in_phone,
     )
     
     # Verificar si la operación fue exitosa
@@ -1061,12 +1061,12 @@ async def agenda_aggregate(
     
     ### filters (opcional)
     Diccionario con filtros a aplicar. Las claves deben ser nombres de campos válidos:
-    - **nombre**: Filtrar por nombre. Utilizar "%nombre%" para hacer consultas ILIKE.
-    - **in_nombre**: Filtrar por varios valores de la columna nombre
-    - **correo**: Filtrar por correo. Utilizar "%correo%" para hacer consultas ILIKE.
-    - **in_correo**: Filtrar por varios valores de la columna correo
-    - **telefono**: Filtrar por telefono. Utilizar "%telefono%" para hacer consultas ILIKE.
-    - **in_telefono**: Filtrar por varios valores de la columna telefono
+    - **name**: Filtrar por name. Utilizar "%name%" para hacer consultas ILIKE.
+    - **in_name**: Filtrar por varios valores de la columna name
+    - **email**: Filtrar por email. Utilizar "%email%" para hacer consultas ILIKE.
+    - **in_email**: Filtrar por varios valores de la columna email
+    - **phone**: Filtrar por phone. Utilizar "%phone%" para hacer consultas ILIKE.
+    - **in_phone**: Filtrar por varios valores de la columna phone
 
     
     Los filtros con prefijo `in_` permiten buscar múltiples valores (OR lógico).
@@ -1314,21 +1314,21 @@ async def agenda_aggregate(
         filter_params["id"] = filters["id"]
     if "in_id" in filters:
         filter_params["in_id"] = filters["in_id"]
-    # Filtro: nombre (tipo: str)
-    if "nombre" in filters:
-        filter_params["nombre"] = filters["nombre"]
-    if "in_nombre" in filters:
-        filter_params["in_nombre"] = filters["in_nombre"]
-    # Filtro: correo (tipo: str)
-    if "correo" in filters:
-        filter_params["correo"] = filters["correo"]
-    if "in_correo" in filters:
-        filter_params["in_correo"] = filters["in_correo"]
-    # Filtro: telefono (tipo: str)
-    if "telefono" in filters:
-        filter_params["telefono"] = filters["telefono"]
-    if "in_telefono" in filters:
-        filter_params["in_telefono"] = filters["in_telefono"]
+    # Filtro: name (tipo: str)
+    if "name" in filters:
+        filter_params["name"] = filters["name"]
+    if "in_name" in filters:
+        filter_params["in_name"] = filters["in_name"]
+    # Filtro: email (tipo: str)
+    if "email" in filters:
+        filter_params["email"] = filters["email"]
+    if "in_email" in filters:
+        filter_params["in_email"] = filters["in_email"]
+    # Filtro: phone (tipo: str)
+    if "phone" in filters:
+        filter_params["phone"] = filters["phone"]
+    if "in_phone" in filters:
+        filter_params["in_phone"] = filters["in_phone"]
 
     
     # Llamar al método agg() del DAO
@@ -1496,9 +1496,9 @@ async def agenda_find(
     ## Datos
     Para cada registro en `data` se incluye:
     - **id** (int): Campo id de la tabla agenda
-    - **nombre** (str): Nombre del usuario
-    - **correo** (str): Correo electrónico del usuario
-    - **telefono** (str): Número de teléfono del usuario
+    - **name** (str): Nombre del usuario
+    - **email** (str): Correo electrónico del usuario
+    - **phone** (str): Número de teléfono del usuario
     
     ## Parámetros de Identificación
     
@@ -1546,7 +1546,7 @@ async def agenda_find(
                             {
                                 "code": "VALIDATION_ERROR",
                                 "message": "El campo es requerido",
-                                "field": "nombre",
+                                "field": "name",
                                 "details": None
                             }
                         ],

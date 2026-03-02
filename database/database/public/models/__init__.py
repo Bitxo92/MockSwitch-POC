@@ -14,9 +14,9 @@ class Agenda(Base):
     __tablename__ = "agenda"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    nombre: Mapped[str]
-    correo: Mapped[str]
-    telefono: Mapped[str]
+    name: Mapped[str]
+    email: Mapped[str]
+    phone: Mapped[str]
 
     __table_args__ = {'schema': 'public'}
 

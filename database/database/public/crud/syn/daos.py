@@ -193,12 +193,12 @@ class AgendaSyncDAO:
         offset: Optional[int] = None,
         order_by: Optional[List[str]] = None,
         order: Literal["ASC", "DESC"] = "ASC",
-        nombre: Optional[str] = None,
-        in_nombre: Optional[List[str]] = None,
-        correo: Optional[str] = None,
-        in_correo: Optional[List[str]] = None,
-        telefono: Optional[str] = None,
-        in_telefono: Optional[List[str]] = None,
+        name: Optional[str] = None,
+        in_name: Optional[List[str]] = None,
+        email: Optional[str] = None,
+        in_email: Optional[List[str]] = None,
+        phone: Optional[str] = None,
+        in_phone: Optional[List[str]] = None,
         includes: Optional[List[str]] = None,
         rls: Optional[Union[List[RLS], RLS]] = None,
         session: Optional[Session] = None
@@ -211,12 +211,12 @@ class AgendaSyncDAO:
         - offset: Número de registros a saltar
         - order_by: Lista de nombres de columnas para ordenar los resultados
         - order: ASC/DESC (por defecto ASC). Solo se aplica si se especifica order_by.
-        - nombre: Filtrar por nombre
-        - in_nombre: Filtrar por múltiples valores de nombre (OR lógico)
-        - correo: Filtrar por correo
-        - in_correo: Filtrar por múltiples valores de correo (OR lógico)
-        - telefono: Filtrar por telefono
-        - in_telefono: Filtrar por múltiples valores de telefono (OR lógico)
+        - name: Filtrar por name
+        - in_name: Filtrar por múltiples valores de name (OR lógico)
+        - email: Filtrar por email
+        - in_email: Filtrar por múltiples valores de email (OR lógico)
+        - phone: Filtrar por phone
+        - in_phone: Filtrar por múltiples valores de phone (OR lógico)
         - includes: Lista de relaciones a incluir (formato: 'relation' o 'relation.nested')
         - session: Sesión existente (opcional)
             
@@ -268,33 +268,33 @@ class AgendaSyncDAO:
         filters = {}
         
         # Aplicar filtros de búsqueda
-        if nombre is not None:
-            filters['nombre'] = nombre
-            if isinstance(nombre, str) and '%' in nombre:
-                query = query.where(Agenda.nombre.ilike(nombre))
+        if name is not None:
+            filters['name'] = name
+            if isinstance(name, str) and '%' in name:
+                query = query.where(Agenda.name.ilike(name))
             else:
-                query = query.where(Agenda.nombre == nombre)
-        if in_nombre is not None and len(in_nombre) > 0:
-            filters['in_nombre'] = in_nombre
-            query = query.where(Agenda.nombre.in_(in_nombre))
-        if correo is not None:
-            filters['correo'] = correo
-            if isinstance(correo, str) and '%' in correo:
-                query = query.where(Agenda.correo.ilike(correo))
+                query = query.where(Agenda.name == name)
+        if in_name is not None and len(in_name) > 0:
+            filters['in_name'] = in_name
+            query = query.where(Agenda.name.in_(in_name))
+        if email is not None:
+            filters['email'] = email
+            if isinstance(email, str) and '%' in email:
+                query = query.where(Agenda.email.ilike(email))
             else:
-                query = query.where(Agenda.correo == correo)
-        if in_correo is not None and len(in_correo) > 0:
-            filters['in_correo'] = in_correo
-            query = query.where(Agenda.correo.in_(in_correo))
-        if telefono is not None:
-            filters['telefono'] = telefono
-            if isinstance(telefono, str) and '%' in telefono:
-                query = query.where(Agenda.telefono.ilike(telefono))
+                query = query.where(Agenda.email == email)
+        if in_email is not None and len(in_email) > 0:
+            filters['in_email'] = in_email
+            query = query.where(Agenda.email.in_(in_email))
+        if phone is not None:
+            filters['phone'] = phone
+            if isinstance(phone, str) and '%' in phone:
+                query = query.where(Agenda.phone.ilike(phone))
             else:
-                query = query.where(Agenda.telefono == telefono)
-        if in_telefono is not None and len(in_telefono) > 0:
-            filters['in_telefono'] = in_telefono
-            query = query.where(Agenda.telefono.in_(in_telefono))
+                query = query.where(Agenda.phone == phone)
+        if in_phone is not None and len(in_phone) > 0:
+            filters['in_phone'] = in_phone
+            query = query.where(Agenda.phone.in_(in_phone))
         
         # Log de parámetros aplicados
         if filters:
@@ -356,9 +356,9 @@ class AgendaSyncDAO:
         self,
         limit: Optional[int] = None, 
         offset: Optional[int] = None,
-        nombre: Optional[str] = None,
-        correo: Optional[str] = None,
-        telefono: Optional[str] = None,
+        name: Optional[str] = None,
+        email: Optional[str] = None,
+        phone: Optional[str] = None,
     ) -> DataFrame:
         """
         Busca múltiples registros estableciendo filtros y devuelve el resultado como pandas DataFrame.
@@ -366,9 +366,9 @@ class AgendaSyncDAO:
         Args:
             limit: Límite de registros a retornar (positivo para primeros n, negativo para últimos n - requiere order_by)
             offset: Número de registros a saltar
-            nombre: Filtrar por nombre
-            correo: Filtrar por correo
-            telefono: Filtrar por telefono
+            name: Filtrar por name
+            email: Filtrar por email
+            phone: Filtrar por phone
             
         Returns:
             pandas.DataFrame con los registros encontrados
@@ -410,18 +410,18 @@ class AgendaSyncDAO:
         records = self.find_many(
             limit=limit,
             offset=offset,
-            nombre=nombre,
-            correo=correo,
-            telefono=telefono,
+            name=name,
+            email=email,
+            phone=phone,
         )
 
         # Si no hay registros, devolver DataFrame vacío con las columnas del modelo
         if not records:
             return pd.DataFrame(columns=[
                 'id',
-                'nombre',
-                'correo',
-                'telefono'
+                'name',
+                'email',
+                'phone'
             ])
 
         data = [record.to_dict() for record in records]
@@ -454,9 +454,9 @@ class AgendaSyncDAO:
         # Mapeo de tipos SQLAlchemy a tipos pandas optimizados
         type_mapping = {
             'id': 'int64',
-            'nombre': 'string',
-            'correo': 'string',
-            'telefono': 'string'
+            'name': 'string',
+            'email': 'string',
+            'phone': 'string'
         }
         
         # Aplicar conversiones de tipo de forma segura
@@ -517,9 +517,9 @@ class AgendaSyncDAO:
             # Crear DataFrame
             df = pd.DataFrame({
                 'id': [1, 2, 3],
-                'nombre': ['valor1', 'valor2', 'valor3'],
-                'correo': ['valor1', 'valor2', 'valor3'],
-                'telefono': ['valor1', 'valor2', 'valor3']
+                'name': ['valor1', 'valor2', 'valor3'],
+                'email': ['valor1', 'valor2', 'valor3'],
+                'phone': ['valor1', 'valor2', 'valor3']
             })
             
             # Inserción simple
@@ -788,24 +788,24 @@ class AgendaSyncDAO:
     @error_handler
     def count(
         self,
-        nombre: Optional[str] = None,
-        in_nombre: Optional[List[str]] = None,
-        correo: Optional[str] = None,
-        in_correo: Optional[List[str]] = None,
-        telefono: Optional[str] = None,
-        in_telefono: Optional[List[str]] = None,
+        name: Optional[str] = None,
+        in_name: Optional[List[str]] = None,
+        email: Optional[str] = None,
+        in_email: Optional[List[str]] = None,
+        phone: Optional[str] = None,
+        in_phone: Optional[List[str]] = None,
         session: Optional[Session] = None
     ) -> int:
         """
         Cuenta registros que coincidan con los filtros.
         
         Args:
-        - nombre: Filtrar por nombre
-            - in_nombre: Filtrar por múltiples valores de nombre (OR lógico)
-            - correo: Filtrar por correo
-            - in_correo: Filtrar por múltiples valores de correo (OR lógico)
-            - telefono: Filtrar por telefono
-            - in_telefono: Filtrar por múltiples valores de telefono (OR lógico)
+        - name: Filtrar por name
+            - in_name: Filtrar por múltiples valores de name (OR lógico)
+            - email: Filtrar por email
+            - in_email: Filtrar por múltiples valores de email (OR lógico)
+            - phone: Filtrar por phone
+            - in_phone: Filtrar por múltiples valores de phone (OR lógico)
         - session: Sesión existente (opcional)
             
         Returns:
@@ -818,33 +818,33 @@ class AgendaSyncDAO:
         # Filters
         filters = {}
         
-        if nombre is not None:
-            filters['nombre'] = nombre
-            if isinstance(nombre, str) and '%' in nombre:
-                query = query.where(Agenda.nombre.ilike(nombre))
+        if name is not None:
+            filters['name'] = name
+            if isinstance(name, str) and '%' in name:
+                query = query.where(Agenda.name.ilike(name))
             else:
-                query = query.where(Agenda.nombre == nombre)
-        if in_nombre is not None and len(in_nombre) > 0:
-            filters['in_nombre'] = in_nombre
-            query = query.where(Agenda.nombre.in_(in_nombre))
-        if correo is not None:
-            filters['correo'] = correo
-            if isinstance(correo, str) and '%' in correo:
-                query = query.where(Agenda.correo.ilike(correo))
+                query = query.where(Agenda.name == name)
+        if in_name is not None and len(in_name) > 0:
+            filters['in_name'] = in_name
+            query = query.where(Agenda.name.in_(in_name))
+        if email is not None:
+            filters['email'] = email
+            if isinstance(email, str) and '%' in email:
+                query = query.where(Agenda.email.ilike(email))
             else:
-                query = query.where(Agenda.correo == correo)
-        if in_correo is not None and len(in_correo) > 0:
-            filters['in_correo'] = in_correo
-            query = query.where(Agenda.correo.in_(in_correo))
-        if telefono is not None:
-            filters['telefono'] = telefono
-            if isinstance(telefono, str) and '%' in telefono:
-                query = query.where(Agenda.telefono.ilike(telefono))
+                query = query.where(Agenda.email == email)
+        if in_email is not None and len(in_email) > 0:
+            filters['in_email'] = in_email
+            query = query.where(Agenda.email.in_(in_email))
+        if phone is not None:
+            filters['phone'] = phone
+            if isinstance(phone, str) and '%' in phone:
+                query = query.where(Agenda.phone.ilike(phone))
             else:
-                query = query.where(Agenda.telefono == telefono)
-        if in_telefono is not None and len(in_telefono) > 0:
-            filters['in_telefono'] = in_telefono
-            query = query.where(Agenda.telefono.in_(in_telefono))
+                query = query.where(Agenda.phone == phone)
+        if in_phone is not None and len(in_phone) > 0:
+            filters['in_phone'] = in_phone
+            query = query.where(Agenda.phone.in_(in_phone))
         
         # Log de parámetros aplicados
         if filters:
@@ -864,12 +864,12 @@ class AgendaSyncDAO:
     def sum(
         self,
         agg_fields: List[str],
-        nombre: Optional[str] = None,
-        in_nombre: Optional[List[str]] = None,
-        correo: Optional[str] = None,
-        in_correo: Optional[List[str]] = None,
-        telefono: Optional[str] = None,
-        in_telefono: Optional[List[str]] = None,
+        name: Optional[str] = None,
+        in_name: Optional[List[str]] = None,
+        email: Optional[str] = None,
+        in_email: Optional[List[str]] = None,
+        phone: Optional[str] = None,
+        in_phone: Optional[List[str]] = None,
         session: Optional[Session] = None
     ) -> AggregationResult:
         """
@@ -877,12 +877,12 @@ class AgendaSyncDAO:
         
         Args:
             - agg_fields: Lista de nombres de campos a sumar
-            - nombre: Filtrar por nombre
-            - in_nombre: Filtrar por múltiples valores de nombre (OR lógico)
-            - correo: Filtrar por correo
-            - in_correo: Filtrar por múltiples valores de correo (OR lógico)
-            - telefono: Filtrar por telefono
-            - in_telefono: Filtrar por múltiples valores de telefono (OR lógico)
+            - name: Filtrar por name
+            - in_name: Filtrar por múltiples valores de name (OR lógico)
+            - email: Filtrar por email
+            - in_email: Filtrar por múltiples valores de email (OR lógico)
+            - phone: Filtrar por phone
+            - in_phone: Filtrar por múltiples valores de phone (OR lógico)
             - session: Sesión existente (opcional)
             
         Returns:
@@ -953,33 +953,33 @@ class AgendaSyncDAO:
         # Filters
         filters = {}
         
-        if nombre is not None:
-            filters['nombre'] = nombre
-            if isinstance(nombre, str) and '%' in nombre:
-                query = query.where(Agenda.nombre.ilike(nombre))
+        if name is not None:
+            filters['name'] = name
+            if isinstance(name, str) and '%' in name:
+                query = query.where(Agenda.name.ilike(name))
             else:
-                query = query.where(Agenda.nombre == nombre)
-        if in_nombre is not None and len(in_nombre) > 0:
-            filters['in_nombre'] = in_nombre
-            query = query.where(Agenda.nombre.in_(in_nombre))
-        if correo is not None:
-            filters['correo'] = correo
-            if isinstance(correo, str) and '%' in correo:
-                query = query.where(Agenda.correo.ilike(correo))
+                query = query.where(Agenda.name == name)
+        if in_name is not None and len(in_name) > 0:
+            filters['in_name'] = in_name
+            query = query.where(Agenda.name.in_(in_name))
+        if email is not None:
+            filters['email'] = email
+            if isinstance(email, str) and '%' in email:
+                query = query.where(Agenda.email.ilike(email))
             else:
-                query = query.where(Agenda.correo == correo)
-        if in_correo is not None and len(in_correo) > 0:
-            filters['in_correo'] = in_correo
-            query = query.where(Agenda.correo.in_(in_correo))
-        if telefono is not None:
-            filters['telefono'] = telefono
-            if isinstance(telefono, str) and '%' in telefono:
-                query = query.where(Agenda.telefono.ilike(telefono))
+                query = query.where(Agenda.email == email)
+        if in_email is not None and len(in_email) > 0:
+            filters['in_email'] = in_email
+            query = query.where(Agenda.email.in_(in_email))
+        if phone is not None:
+            filters['phone'] = phone
+            if isinstance(phone, str) and '%' in phone:
+                query = query.where(Agenda.phone.ilike(phone))
             else:
-                query = query.where(Agenda.telefono == telefono)
-        if in_telefono is not None and len(in_telefono) > 0:
-            filters['in_telefono'] = in_telefono
-            query = query.where(Agenda.telefono.in_(in_telefono))
+                query = query.where(Agenda.phone == phone)
+        if in_phone is not None and len(in_phone) > 0:
+            filters['in_phone'] = in_phone
+            query = query.where(Agenda.phone.in_(in_phone))
         
         # Log de parámetros aplicados
         if filters:
@@ -1024,12 +1024,12 @@ class AgendaSyncDAO:
     def mean(
         self,
         agg_fields: List[str],
-        nombre: Optional[str] = None,
-        in_nombre: Optional[List[str]] = None,
-        correo: Optional[str] = None,
-        in_correo: Optional[List[str]] = None,
-        telefono: Optional[str] = None,
-        in_telefono: Optional[List[str]] = None,
+        name: Optional[str] = None,
+        in_name: Optional[List[str]] = None,
+        email: Optional[str] = None,
+        in_email: Optional[List[str]] = None,
+        phone: Optional[str] = None,
+        in_phone: Optional[List[str]] = None,
         session: Optional[Session] = None
     ) -> AggregationResult:
         """
@@ -1037,12 +1037,12 @@ class AgendaSyncDAO:
         
         Args:
             - agg_fields: Lista de nombres de campos para calcular la media
-            - nombre: Filtrar por nombre
-            - in_nombre: Filtrar por múltiples valores de nombre (OR lógico)
-            - correo: Filtrar por correo
-            - in_correo: Filtrar por múltiples valores de correo (OR lógico)
-            - telefono: Filtrar por telefono
-            - in_telefono: Filtrar por múltiples valores de telefono (OR lógico)
+            - name: Filtrar por name
+            - in_name: Filtrar por múltiples valores de name (OR lógico)
+            - email: Filtrar por email
+            - in_email: Filtrar por múltiples valores de email (OR lógico)
+            - phone: Filtrar por phone
+            - in_phone: Filtrar por múltiples valores de phone (OR lógico)
             - session: Sesión existente (opcional)
             
         Returns:
@@ -1113,33 +1113,33 @@ class AgendaSyncDAO:
         # Filters
         filters = {}
         
-        if nombre is not None:
-            filters['nombre'] = nombre
-            if isinstance(nombre, str) and '%' in nombre:
-                query = query.where(Agenda.nombre.ilike(nombre))
+        if name is not None:
+            filters['name'] = name
+            if isinstance(name, str) and '%' in name:
+                query = query.where(Agenda.name.ilike(name))
             else:
-                query = query.where(Agenda.nombre == nombre)
-        if in_nombre is not None and len(in_nombre) > 0:
-            filters['in_nombre'] = in_nombre
-            query = query.where(Agenda.nombre.in_(in_nombre))
-        if correo is not None:
-            filters['correo'] = correo
-            if isinstance(correo, str) and '%' in correo:
-                query = query.where(Agenda.correo.ilike(correo))
+                query = query.where(Agenda.name == name)
+        if in_name is not None and len(in_name) > 0:
+            filters['in_name'] = in_name
+            query = query.where(Agenda.name.in_(in_name))
+        if email is not None:
+            filters['email'] = email
+            if isinstance(email, str) and '%' in email:
+                query = query.where(Agenda.email.ilike(email))
             else:
-                query = query.where(Agenda.correo == correo)
-        if in_correo is not None and len(in_correo) > 0:
-            filters['in_correo'] = in_correo
-            query = query.where(Agenda.correo.in_(in_correo))
-        if telefono is not None:
-            filters['telefono'] = telefono
-            if isinstance(telefono, str) and '%' in telefono:
-                query = query.where(Agenda.telefono.ilike(telefono))
+                query = query.where(Agenda.email == email)
+        if in_email is not None and len(in_email) > 0:
+            filters['in_email'] = in_email
+            query = query.where(Agenda.email.in_(in_email))
+        if phone is not None:
+            filters['phone'] = phone
+            if isinstance(phone, str) and '%' in phone:
+                query = query.where(Agenda.phone.ilike(phone))
             else:
-                query = query.where(Agenda.telefono == telefono)
-        if in_telefono is not None and len(in_telefono) > 0:
-            filters['in_telefono'] = in_telefono
-            query = query.where(Agenda.telefono.in_(in_telefono))
+                query = query.where(Agenda.phone == phone)
+        if in_phone is not None and len(in_phone) > 0:
+            filters['in_phone'] = in_phone
+            query = query.where(Agenda.phone.in_(in_phone))
         
         # Log de parámetros aplicados
         if filters:
@@ -1184,12 +1184,12 @@ class AgendaSyncDAO:
     def max(
         self,
         agg_fields: List[str],
-        nombre: Optional[str] = None,
-        in_nombre: Optional[List[str]] = None,
-        correo: Optional[str] = None,
-        in_correo: Optional[List[str]] = None,
-        telefono: Optional[str] = None,
-        in_telefono: Optional[List[str]] = None,
+        name: Optional[str] = None,
+        in_name: Optional[List[str]] = None,
+        email: Optional[str] = None,
+        in_email: Optional[List[str]] = None,
+        phone: Optional[str] = None,
+        in_phone: Optional[List[str]] = None,
         session: Optional[Session] = None
     ) -> AggregationResult:
         """
@@ -1197,12 +1197,12 @@ class AgendaSyncDAO:
         
         Args:
             - agg_fields: Lista de nombres de campos para encontrar el máximo
-            - nombre: Filtrar por nombre
-            - in_nombre: Filtrar por múltiples valores de nombre (OR lógico)
-            - correo: Filtrar por correo
-            - in_correo: Filtrar por múltiples valores de correo (OR lógico)
-            - telefono: Filtrar por telefono
-            - in_telefono: Filtrar por múltiples valores de telefono (OR lógico)
+            - name: Filtrar por name
+            - in_name: Filtrar por múltiples valores de name (OR lógico)
+            - email: Filtrar por email
+            - in_email: Filtrar por múltiples valores de email (OR lógico)
+            - phone: Filtrar por phone
+            - in_phone: Filtrar por múltiples valores de phone (OR lógico)
             - session: Sesión existente (opcional)
             
         Returns:
@@ -1279,33 +1279,33 @@ class AgendaSyncDAO:
         # Filters
         filters = {}
         
-        if nombre is not None:
-            filters['nombre'] = nombre
-            if isinstance(nombre, str) and '%' in nombre:
-                query = query.where(Agenda.nombre.ilike(nombre))
+        if name is not None:
+            filters['name'] = name
+            if isinstance(name, str) and '%' in name:
+                query = query.where(Agenda.name.ilike(name))
             else:
-                query = query.where(Agenda.nombre == nombre)
-        if in_nombre is not None and len(in_nombre) > 0:
-            filters['in_nombre'] = in_nombre
-            query = query.where(Agenda.nombre.in_(in_nombre))
-        if correo is not None:
-            filters['correo'] = correo
-            if isinstance(correo, str) and '%' in correo:
-                query = query.where(Agenda.correo.ilike(correo))
+                query = query.where(Agenda.name == name)
+        if in_name is not None and len(in_name) > 0:
+            filters['in_name'] = in_name
+            query = query.where(Agenda.name.in_(in_name))
+        if email is not None:
+            filters['email'] = email
+            if isinstance(email, str) and '%' in email:
+                query = query.where(Agenda.email.ilike(email))
             else:
-                query = query.where(Agenda.correo == correo)
-        if in_correo is not None and len(in_correo) > 0:
-            filters['in_correo'] = in_correo
-            query = query.where(Agenda.correo.in_(in_correo))
-        if telefono is not None:
-            filters['telefono'] = telefono
-            if isinstance(telefono, str) and '%' in telefono:
-                query = query.where(Agenda.telefono.ilike(telefono))
+                query = query.where(Agenda.email == email)
+        if in_email is not None and len(in_email) > 0:
+            filters['in_email'] = in_email
+            query = query.where(Agenda.email.in_(in_email))
+        if phone is not None:
+            filters['phone'] = phone
+            if isinstance(phone, str) and '%' in phone:
+                query = query.where(Agenda.phone.ilike(phone))
             else:
-                query = query.where(Agenda.telefono == telefono)
-        if in_telefono is not None and len(in_telefono) > 0:
-            filters['in_telefono'] = in_telefono
-            query = query.where(Agenda.telefono.in_(in_telefono))
+                query = query.where(Agenda.phone == phone)
+        if in_phone is not None and len(in_phone) > 0:
+            filters['in_phone'] = in_phone
+            query = query.where(Agenda.phone.in_(in_phone))
         
         # Log de parámetros aplicados
         if filters:
@@ -1358,12 +1358,12 @@ class AgendaSyncDAO:
     def min(
         self,
         agg_fields: List[str],
-        nombre: Optional[str] = None,
-        in_nombre: Optional[List[str]] = None,
-        correo: Optional[str] = None,
-        in_correo: Optional[List[str]] = None,
-        telefono: Optional[str] = None,
-        in_telefono: Optional[List[str]] = None,
+        name: Optional[str] = None,
+        in_name: Optional[List[str]] = None,
+        email: Optional[str] = None,
+        in_email: Optional[List[str]] = None,
+        phone: Optional[str] = None,
+        in_phone: Optional[List[str]] = None,
         session: Optional[Session] = None
     ) -> AggregationResult:
         """
@@ -1371,12 +1371,12 @@ class AgendaSyncDAO:
         
         Args:
             - agg_fields: Lista de nombres de campos para encontrar el mínimo
-            - nombre: Filtrar por nombre
-            - in_nombre: Filtrar por múltiples valores de nombre (OR lógico)
-            - correo: Filtrar por correo
-            - in_correo: Filtrar por múltiples valores de correo (OR lógico)
-            - telefono: Filtrar por telefono
-            - in_telefono: Filtrar por múltiples valores de telefono (OR lógico)
+            - name: Filtrar por name
+            - in_name: Filtrar por múltiples valores de name (OR lógico)
+            - email: Filtrar por email
+            - in_email: Filtrar por múltiples valores de email (OR lógico)
+            - phone: Filtrar por phone
+            - in_phone: Filtrar por múltiples valores de phone (OR lógico)
             - session: Sesión existente (opcional)
             
         Returns:
@@ -1454,33 +1454,33 @@ class AgendaSyncDAO:
         # Filters
         filters = {}
         
-        if nombre is not None:
-            filters['nombre'] = nombre
-            if isinstance(nombre, str) and '%' in nombre:
-                query = query.where(Agenda.nombre.ilike(nombre))
+        if name is not None:
+            filters['name'] = name
+            if isinstance(name, str) and '%' in name:
+                query = query.where(Agenda.name.ilike(name))
             else:
-                query = query.where(Agenda.nombre == nombre)
-        if in_nombre is not None and len(in_nombre) > 0:
-            filters['in_nombre'] = in_nombre
-            query = query.where(Agenda.nombre.in_(in_nombre))
-        if correo is not None:
-            filters['correo'] = correo
-            if isinstance(correo, str) and '%' in correo:
-                query = query.where(Agenda.correo.ilike(correo))
+                query = query.where(Agenda.name == name)
+        if in_name is not None and len(in_name) > 0:
+            filters['in_name'] = in_name
+            query = query.where(Agenda.name.in_(in_name))
+        if email is not None:
+            filters['email'] = email
+            if isinstance(email, str) and '%' in email:
+                query = query.where(Agenda.email.ilike(email))
             else:
-                query = query.where(Agenda.correo == correo)
-        if in_correo is not None and len(in_correo) > 0:
-            filters['in_correo'] = in_correo
-            query = query.where(Agenda.correo.in_(in_correo))
-        if telefono is not None:
-            filters['telefono'] = telefono
-            if isinstance(telefono, str) and '%' in telefono:
-                query = query.where(Agenda.telefono.ilike(telefono))
+                query = query.where(Agenda.email == email)
+        if in_email is not None and len(in_email) > 0:
+            filters['in_email'] = in_email
+            query = query.where(Agenda.email.in_(in_email))
+        if phone is not None:
+            filters['phone'] = phone
+            if isinstance(phone, str) and '%' in phone:
+                query = query.where(Agenda.phone.ilike(phone))
             else:
-                query = query.where(Agenda.telefono == telefono)
-        if in_telefono is not None and len(in_telefono) > 0:
-            filters['in_telefono'] = in_telefono
-            query = query.where(Agenda.telefono.in_(in_telefono))
+                query = query.where(Agenda.phone == phone)
+        if in_phone is not None and len(in_phone) > 0:
+            filters['in_phone'] = in_phone
+            query = query.where(Agenda.phone.in_(in_phone))
         
         # Log de parámetros aplicados
         if filters:
@@ -1533,12 +1533,12 @@ class AgendaSyncDAO:
     def agg(
         self,
         aggregations: Dict[str, Union[List[str], List[Dict[str, Any]]]],
-        nombre: Optional[str] = None,
-        in_nombre: Optional[List[str]] = None,
-        correo: Optional[str] = None,
-        in_correo: Optional[List[str]] = None,
-        telefono: Optional[str] = None,
-        in_telefono: Optional[List[str]] = None,
+        name: Optional[str] = None,
+        in_name: Optional[List[str]] = None,
+        email: Optional[str] = None,
+        in_email: Optional[List[str]] = None,
+        phone: Optional[str] = None,
+        in_phone: Optional[List[str]] = None,
         session: Optional[Session] = None
     ) -> AggregationResult:
         """
@@ -1565,12 +1565,12 @@ class AgendaSyncDAO:
                            - max: Valor máximo (numérico o fechas)
                            - min: Valor mínimo (numérico o fechas)
                            - count: Conteo de registros (cualquier tipo de campo)
-            - nombre: Filtrar por nombre
-            - in_nombre: Filtrar por múltiples valores de nombre (OR lógico)
-            - correo: Filtrar por correo
-            - in_correo: Filtrar por múltiples valores de correo (OR lógico)
-            - telefono: Filtrar por telefono
-            - in_telefono: Filtrar por múltiples valores de telefono (OR lógico)
+            - name: Filtrar por name
+            - in_name: Filtrar por múltiples valores de name (OR lógico)
+            - email: Filtrar por email
+            - in_email: Filtrar por múltiples valores de email (OR lógico)
+            - phone: Filtrar por phone
+            - in_phone: Filtrar por múltiples valores de phone (OR lógico)
             - session: Sesión existente (opcional)
             
         Returns:
@@ -1791,33 +1791,33 @@ class AgendaSyncDAO:
         # Filters
         filters = {}
         
-        if nombre is not None:
-            filters['nombre'] = nombre
-            if isinstance(nombre, str) and '%' in nombre:
-                query = query.where(Agenda.nombre.ilike(nombre))
+        if name is not None:
+            filters['name'] = name
+            if isinstance(name, str) and '%' in name:
+                query = query.where(Agenda.name.ilike(name))
             else:
-                query = query.where(Agenda.nombre == nombre)
-        if in_nombre is not None and len(in_nombre) > 0:
-            filters['in_nombre'] = in_nombre
-            query = query.where(Agenda.nombre.in_(in_nombre))
-        if correo is not None:
-            filters['correo'] = correo
-            if isinstance(correo, str) and '%' in correo:
-                query = query.where(Agenda.correo.ilike(correo))
+                query = query.where(Agenda.name == name)
+        if in_name is not None and len(in_name) > 0:
+            filters['in_name'] = in_name
+            query = query.where(Agenda.name.in_(in_name))
+        if email is not None:
+            filters['email'] = email
+            if isinstance(email, str) and '%' in email:
+                query = query.where(Agenda.email.ilike(email))
             else:
-                query = query.where(Agenda.correo == correo)
-        if in_correo is not None and len(in_correo) > 0:
-            filters['in_correo'] = in_correo
-            query = query.where(Agenda.correo.in_(in_correo))
-        if telefono is not None:
-            filters['telefono'] = telefono
-            if isinstance(telefono, str) and '%' in telefono:
-                query = query.where(Agenda.telefono.ilike(telefono))
+                query = query.where(Agenda.email == email)
+        if in_email is not None and len(in_email) > 0:
+            filters['in_email'] = in_email
+            query = query.where(Agenda.email.in_(in_email))
+        if phone is not None:
+            filters['phone'] = phone
+            if isinstance(phone, str) and '%' in phone:
+                query = query.where(Agenda.phone.ilike(phone))
             else:
-                query = query.where(Agenda.telefono == telefono)
-        if in_telefono is not None and len(in_telefono) > 0:
-            filters['in_telefono'] = in_telefono
-            query = query.where(Agenda.telefono.in_(in_telefono))
+                query = query.where(Agenda.phone == phone)
+        if in_phone is not None and len(in_phone) > 0:
+            filters['in_phone'] = in_phone
+            query = query.where(Agenda.phone.in_(in_phone))
         
         # Log de parámetros aplicados
         if filters:
@@ -1885,24 +1885,24 @@ class AgendaSyncDAO:
     @error_handler
     def exists(
         self,
-        nombre: Optional[str] = None,
-        in_nombre: Optional[List[str]] = None,
-        correo: Optional[str] = None,
-        in_correo: Optional[List[str]] = None,
-        telefono: Optional[str] = None,
-        in_telefono: Optional[List[str]] = None,
+        name: Optional[str] = None,
+        in_name: Optional[List[str]] = None,
+        email: Optional[str] = None,
+        in_email: Optional[List[str]] = None,
+        phone: Optional[str] = None,
+        in_phone: Optional[List[str]] = None,
         session: Optional[Session] = None
     ) -> bool:
         """
         Verifica si existe al menos un registro que coincida con los filtros.
         
         Args:
-            - nombre: Filtrar por nombre
-            - in_nombre: Filtrar por múltiples valores de nombre (OR lógico)
-            - correo: Filtrar por correo
-            - in_correo: Filtrar por múltiples valores de correo (OR lógico)
-            - telefono: Filtrar por telefono
-            - in_telefono: Filtrar por múltiples valores de telefono (OR lógico)
+            - name: Filtrar por name
+            - in_name: Filtrar por múltiples valores de name (OR lógico)
+            - email: Filtrar por email
+            - in_email: Filtrar por múltiples valores de email (OR lógico)
+            - phone: Filtrar por phone
+            - in_phone: Filtrar por múltiples valores de phone (OR lógico)
             session: Sesión existente (opcional)
             
         Returns:
@@ -1910,12 +1910,12 @@ class AgendaSyncDAO:
         """
         logger.info(f"[public] ❓ Verificando existencia de registros Agenda")
         records = self.count(
-            nombre=nombre,
-            in_nombre=in_nombre,
-            correo=correo,
-            in_correo=in_correo,
-            telefono=telefono,
-            in_telefono=in_telefono,
+            name=name,
+            in_name=in_name,
+            email=email,
+            in_email=in_email,
+            phone=phone,
+            in_phone=in_phone,
             session=session
         )
         exists_result = records > 0

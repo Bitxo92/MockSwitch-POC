@@ -38,9 +38,9 @@ class Agenda(Table):
     __tablename__ = "agenda"
 
     id: int = column(primary_key=True, autoincrement=True)
-    nombre: str = column(description='Nombre del usuario')
-    correo: str = column(description='Correo electrónico del usuario')
-    telefono: str = column(description='Número de teléfono del usuario')
+    name: str = column(description='Nombre del usuario')
+    email: str = column(description='Correo electrónico del usuario')
+    phone: str = column(description='Número de teléfono del usuario')
 
 
 
