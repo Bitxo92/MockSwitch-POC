@@ -118,8 +118,15 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html,
   body {
     @apply bg-background text-foreground;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none;
   }
 }
 
