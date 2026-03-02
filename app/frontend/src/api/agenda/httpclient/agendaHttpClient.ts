@@ -1,20 +1,54 @@
 import type { AgendaClientInterface } from "@/interfaces/AgendaClientInterface";
 import type { Agenda } from "@/types/agenda";
 
+const apiBase = "/api/public";
+
 export class AgendaHttpClient implements AgendaClientInterface {
-  getAll(): Promise<Agenda[]> {
-    throw new Error("Method not implemented.");
+  async getAll(): Promise<Agenda[]> {
+    const response = await fetch(`${apiBase}/agenda`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch agenda items");
+    }
+    const result = await response.json();
+
+    return result.data;
   }
-  getById(id: number): Promise<Agenda | undefined> {
-    throw new Error("Method not implemented.");
+  async getById(id: number): Promise<Agenda | undefined> {
+    const response = await fetch(`${apiBase}/agenda/${id}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch agenda item with id ${id}`);
+    }
+    const result = await response.json();
+    return result.data;
   }
-  create(data: Omit<Agenda, "id">): Promise<Agenda> {
-    throw new Error("Method not implemented.");
+  async create(data: Omit<Agenda, "id">): Promise<Agenda> {
+    const response = await fetch(`${apiBase}/agenda`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error("Error al crear agenda");
+    const result = await response.json();
+    return result.data;
   }
-  update(id: number, data: Omit<Agenda, "id">): Promise<Agenda | undefined> {
-    throw new Error("Method not implemented.");
+  async update(
+    id: number,
+    data: Omit<Agenda, "id">,
+  ): Promise<Agenda | undefined> {
+    const response = await fetch(`${apiBase}/agenda/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error(`Error al actualizar agenda ${id}`);
+    const result = await response.json();
+    return result.data;
   }
-  delete(id: number): Promise<boolean> {
-    throw new Error("Method not implemented.");
+  async delete(id: number): Promise<boolean> {
+    const response = await fetch(`${apiBase}/agenda/${id}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) throw new Error(`Error al eliminar agenda ${id}`);
+    return true;
   }
 }
