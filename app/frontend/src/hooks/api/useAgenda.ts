@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { agendaClient } from "@/api/index";
+import { agendaClient } from "@/api/agenda/index";
 import { type Agenda } from "@/types/agenda";
 
 export const useAgenda = () => {
