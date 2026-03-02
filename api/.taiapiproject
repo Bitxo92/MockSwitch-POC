@@ -1,0 +1,9 @@
+{
+  "name": ".",
+  "namespace": "api",
+  "current_version": "0.1.0",
+  "mode": "development",
+  "auth": null,
+  "mcp": false,
+  "secret_key_name": "SECRET_KEY"
+}

@@ -1,0 +1,68 @@
+FROM python:3.10-slim
+
+ARG MAIN_DATABASE_URL
+ARG MAIN_KEYCLOAK_URL
+ARG KEYCLOAK_API_CLIENT_SECRET
+ARG SECRET_KEY
+ARG PORT
+ARG RBAC_ENABLED=true
+ARG API_DOCS_PWD
+
+ENV MAIN_DATABASE_URL=${MAIN_DATABASE_URL}
+ENV MAIN_KEYCLOAK_URL=${MAIN_KEYCLOAK_URL}
+ENV KEYCLOAK_API_CLIENT_SECRET=${KEYCLOAK_API_CLIENT_SECRET}
+ENV SECRET_KEY=${SECRET_KEY}
+ENV RBAC_ENABLED=${RBAC_ENABLED}
+ENV PORT=${PORT:-80}
+ENV API_DOCS_PWD=${API_DOCS_PWD}
+
+# Variables de entorno para que Poetry instale en el entorno global y no interactúe
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    POETRY_VIRTUALENVS_CREATE=false \
+    POETRY_NO_INTERACTION=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/root/.local/bin:${PATH}" \
+    PIP_NO_CACHE_DIR=off \
+    PIP_DISABLE_PIP_VERSION_CHECK=on \
+    PIP_DEFAULT_TIMEOUT=100 \
+    VIRTUAL_ENV=/usr/local \
+    TZ="Europe/Madrid"
+
+# Instalar dependencias de sistema necesarias para psycopg y utilidades
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        libpq-dev \
+        libffi-dev \
+        openssl \
+        openssh-server \
+        bash \
+        curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configurar password de root y generar claves SSH
+RUN echo "root:Docker!" | chpasswd \
+    && ssh-keygen -A
+
+# Instalar Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 -
+
+WORKDIR /app
+
+# Copiar metadatos del proyecto e instalar dependencias (sin build)
+COPY pyproject.toml poetry.lock ./
+RUN poetry install --no-root --only main
+
+# Copiar el código de la aplicación
+COPY api ./api
+
+# Exponer puertos (Azure usa la variable PORT en runtime)
+EXPOSE 80 5000
+
+# Copiar y usar el entrypoint que arranca sshd + uvicorn
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+CMD ["/entrypoint.sh"]
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=20s --retries=5 \
+  CMD curl -f http://localhost:5000/health || exit 1

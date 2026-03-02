@@ -1,0 +1,388 @@
+"""
+# rls.py
+# Módulo de utilidades para RLS (Row Level Security) en DAOs síncronos
+# Implementa reglas RLS robustas, tipadas y optimizadas
+"""
+import functools
+from collections import deque
+from dataclasses import dataclass
+from enum import Enum
+from typing import (
+    Any,
+    List,
+    Optional,
+    Union,
+    Type,
+    Protocol,
+    TypeVar,
+    Dict,
+    Tuple,
+    runtime_checkable
+)
+from sqlalchemy.sql.elements import ColumnElement
+from sqlalchemy import false
+from sqlalchemy.orm import class_mapper
+
+# Type variables para mejor tipado
+ModelType = TypeVar('ModelType')
+QueryType = TypeVar('QueryType')
+
+from tai_alphi import Alphi
+
+# Logger
+logger = Alphi.get_logger_by_name("tai-sql")
+
+# ===============================================
+# 🔒 RLS (Row Level Security) utilities for DAOs
+# ===============================================
+
+class RLSOperator(str, Enum):
+    """Operadores soportados para reglas RLS."""
+    IN = "in"
+    EQ = "eq" 
+    NE = "ne"
+    GT = "gt"
+    GE = "ge"
+    LT = "lt"
+    LE = "le"
+    LIKE = "like"
+    ILIKE = "ilike"
+
+@dataclass(frozen=True, slots=True)
+class RelationshipPath:
+    """
+    Representa un camino de relaciones entre dos modelos.
+    Inmutable y cacheable por ser frozen y con slots.
+    """
+    source_model: Type[ModelType]
+    target_model: Type[ModelType]
+    path: Tuple[str, ...]  # Tupla para ser hashable
+    depth: int
+    is_direct: bool  # True si source_model == target_model
+    
+    @property
+    def path_str(self) -> str:
+        """Representación string del path para debugging."""
+        return " → ".join(self.path) if self.path else "DIRECT"
+    
+    def __str__(self) -> str:
+        return f"{self.source_model.__name__} → {self.target_model.__name__} ({self.path_str})"
+
+@runtime_checkable
+class RLSRule(Protocol):
+    """Protocol que define la interfaz para reglas RLS."""
+    
+    def applies_to(self, model_cls: Type[ModelType]) -> bool:
+        """Determina si esta regla se aplica al modelo dado."""
+        ...
+    
+    def build_predicate(self, model_cls: Type[ModelType]) -> Optional[ColumnElement]:
+        """Construye el predicado SQLAlchemy para el modelo."""
+        ...
+    
+    def __str__(self) -> str:
+        """Representación string para debugging."""
+        ...
+
+@dataclass
+class RLS:
+    """
+    Implementación simple y robusta de RLS.
+    
+    Características:
+    - Tipado fuerte y validación temprana
+    - Soporte para múltiples operadores
+    - Cacheo automático de paths
+    - API clara y extensible
+    """
+    target_model: Type[ModelType]
+    target_column: str
+    values: List[Any] | Any
+    operator: RLSOperator = RLSOperator.IN
+    
+    def __post_init__(self):
+        """Validación y normalización después de la inicialización."""
+            
+        # Normalizar valores a lista si es necesario
+        if not isinstance(self.values, list):
+            if isinstance(self.values, (tuple, set)):
+                self.values = list(self.values)
+            else:
+                self.values = [self.values]
+
+        # Convertir strings numéricas a enteros silenciosamente
+        converted_values = []
+        for value in self.values:
+            if isinstance(value, str) and value.isdigit():
+                converted_values.append(int(value))
+            else:
+                converted_values.append(value)
+        self.values = converted_values
+        
+    def applies_to(self, model_cls: Type[ModelType]) -> bool:
+        """Determina si esta regla se aplica al modelo dado."""
+        path = RelationshipPathFinder.find_path(model_cls, self.target_model)
+        return path is not None
+    
+    def build_predicate(self, model_cls: Type[ModelType]) -> Optional[ColumnElement]:
+        """Construye el predicado SQLAlchemy para el modelo."""
+        return RLSPredicateBuilder.build_predicate(
+            model_cls, 
+            self.target_model, 
+            self.target_column,
+            self.values, 
+            self.operator
+        )
+    
+    def __str__(self) -> str:
+        return f"{self.target_model.__name__}.{self.target_column} {self.operator.value} {self.values}"
+
+class RelationshipPathFinder:
+    """
+    Buscador optimizado de caminos entre modelos con cacheo inteligente.
+    """
+    
+    _path_cache: Dict[Tuple[Type, Type], Optional[RelationshipPath]] = {}
+    
+    @classmethod
+    @functools.lru_cache(maxsize=1024)
+    def find_path(
+        cls, 
+        source_model: Type[ModelType], 
+        target_model: Type[ModelType],
+        max_depth: int = 20
+    ) -> Optional[RelationshipPath]:
+        """
+        Encuentra el camino más corto entre dos modelos usando BFS.
+        
+        Args:
+            source_model: Modelo origen
+            target_model: Modelo destino  
+            max_depth: Profundidad máxima de búsqueda
+            
+        Returns:
+            RelationshipPath si existe conexión, None caso contrario
+        """
+        # Caso directo: mismo modelo
+        if source_model is target_model:
+            return RelationshipPath(
+                source_model=source_model,
+                target_model=target_model,
+                path=(),
+                depth=0,
+                is_direct=True
+            )
+        
+        # Búsqueda BFS para encontrar el camino más corto
+        queue = deque([(source_model, ())])
+        visited = {source_model}
+        
+        while queue:
+            current_model, current_path = queue.popleft()
+            
+            # Límite de profundidad
+            if len(current_path) >= max_depth:
+                continue
+                
+            try:
+                mapper = class_mapper(current_model)
+            except Exception:
+                # Modelo no válido para SQLAlchemy
+                continue
+            
+            for relationship in mapper.relationships:
+                next_model = relationship.mapper.class_
+                
+                # Evitar ciclos
+                if next_model in visited:
+                    continue
+                    
+                next_path = current_path + (relationship.key,)
+                
+                # ¿Llegamos al destino?
+                if next_model is target_model:
+                    return RelationshipPath(
+                        source_model=source_model,
+                        target_model=target_model,
+                        path=next_path,
+                        depth=len(next_path),
+                        is_direct=False
+                    )
+                
+                visited.add(next_model)
+                queue.append((next_model, next_path))
+        
+        # No hay camino
+        return None
+
+class RLSPredicateBuilder:
+    """
+    Constructor de predicados SQLAlchemy con soporte para múltiples operadores.
+    """
+    
+    @staticmethod
+    def build_predicate(
+        source_model: Type[ModelType],
+        target_model: Type[ModelType], 
+        target_column: str,
+        values: List[Any],
+        operator: RLSOperator
+    ) -> Optional[ColumnElement]:
+        """
+        Construye un predicado SQLAlchemy optimizado.
+        
+        Args:
+            source_model: Modelo sobre el que se aplica el filtro
+            target_model: Modelo que contiene la columna objetivo
+            target_column: Nombre de la columna objetivo
+            values: Valores para el filtro
+            operator: Operador a aplicar
+            
+        Returns:
+            ColumnElement con el predicado o None si no es posible
+        """
+        if not values:
+            return false()
+            
+        # Buscar el camino
+        path = RelationshipPathFinder.find_path(source_model, target_model)
+        if path is None:
+            return None
+            
+        # Obtener la columna objetivo
+        try:
+            target_col = getattr(target_model, target_column)
+        except AttributeError:
+            logger.error(f"[public] Column {target_column} not found in {target_model.__name__}")
+            return None
+        
+        # Construir predicado base según el operador
+        base_predicate = RLSPredicateBuilder._build_base_predicate(
+            target_col, values, operator
+        )
+        if base_predicate is None:
+            return None
+            
+        # Si es directo (mismo modelo), devolver predicado base
+        if path.is_direct:
+            return base_predicate
+            
+        # Construir predicado con relaciones
+        return RLSPredicateBuilder._build_relationship_predicate(
+            source_model, path.path, base_predicate
+        )
+    
+    @staticmethod
+    def _build_base_predicate(
+        column: ColumnElement, 
+        values: List[Any], 
+        operator: RLSOperator
+    ) -> Optional[ColumnElement]:
+        """Construye el predicado base según el operador."""
+        try:
+            if operator == RLSOperator.IN:
+                return column.in_(values)
+            elif operator == RLSOperator.EQ:
+                return column == values[0] if len(values) == 1 else column.in_(values)
+            elif operator == RLSOperator.NE:
+                return column != values[0] if len(values) == 1 else ~column.in_(values)
+            elif operator == RLSOperator.GT:
+                return column > values[0]
+            elif operator == RLSOperator.GE:
+                return column >= values[0]
+            elif operator == RLSOperator.LT:
+                return column < values[0]
+            elif operator == RLSOperator.LE:
+                return column <= values[0]
+            elif operator == RLSOperator.LIKE:
+                return column.like(values[0])
+            elif operator == RLSOperator.ILIKE:
+                return column.ilike(values[0])
+            else:
+                logger.error(f"[public] Unsupported RLS operator: {operator}")
+                return None
+        except Exception as e:
+            logger.error(f"[public] Error building base predicate: {e}")
+            return None
+    
+    @staticmethod
+    def _build_relationship_predicate(
+        source_model: Type[ModelType],
+        path: Tuple[str, ...], 
+        base_predicate: ColumnElement
+    ) -> Optional[ColumnElement]:
+        """
+        Construye predicado siguiendo el camino de relaciones.
+        
+        Algoritmo más simple: construir desde el final hacia el inicio
+        sin necesidad de reverse, navegando correctamente los modelos.
+        """
+        try:
+            # Construir desde el final del path hacia el inicio
+            current_predicate = base_predicate
+            
+            # Para path ("company", "department"):
+            # 1. Empezar desde Company.department.has(base_predicate) 
+            # 2. Luego User.company.has(resultado_anterior)
+            
+            for i in range(len(path)):
+                # Índice desde el final: len-1, len-2, ..., 0
+                path_index = len(path) - 1 - i
+                relation_key = path[path_index]
+                
+                # Determinar el modelo actual navegando desde source_model
+                current_model = source_model
+                for j in range(path_index):
+                    rel_attr = getattr(current_model, path[j])
+                    current_model = rel_attr.property.mapper.class_
+                
+                # Obtener la relación y aplicar .has()
+                relation_attr = getattr(current_model, relation_key)
+                current_predicate = relation_attr.has(current_predicate)
+                    
+            return current_predicate
+            
+        except Exception as e:
+            logger.error(f"[public] Error building relationship predicate: {e}")
+            return None
+
+class RLSQueryApplicator:
+    """
+    Aplicador de reglas RLS a queries con soporte para múltiples reglas y debugging.
+    """
+    
+    @staticmethod
+    def apply_rls(
+        query: QueryType, 
+        model_cls: Type[ModelType], 
+        rls_rules: Union[RLSRule, List[RLSRule], None]
+    ) -> QueryType:
+        """
+        Aplica una o múltiples reglas RLS a una query.
+        
+        Args:
+            query: Query SQLAlchemy
+            model_cls: Modelo sobre el que se aplica
+            rls_rules: Regla(s) RLS a aplicar
+            
+        Returns:
+            Query modificada con las reglas RLS aplicadas
+        """
+        if rls_rules is None:
+            return query
+            
+        # Normalizar a lista
+        rules = rls_rules if isinstance(rls_rules, list) else [rls_rules]
+        
+        # Aplicar cada regla
+        for rule in rules:
+            if not rule.applies_to(model_cls):
+                continue
+                
+            predicate = rule.build_predicate(model_cls)
+            if predicate is not None:
+                logger.info(f"[public] Applying RLS to {model_cls.__name__}")
+                logger.info(f"[public]     Rule: {rule}")
+                query = query.where(predicate)
+                
+        return query
