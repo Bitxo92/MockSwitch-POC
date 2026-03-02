@@ -35,7 +35,7 @@ generate(
 # Ejemplo de definición de tablas y relaciones. Eliminar estos modelos y definir los tuyos propios.
 class Agenda(Table):
     """Tabla que almacena información de los usuarios del sistema"""
-    __tablename__ = "usuario"
+    __tablename__ = "agenda"
 
     id: int = column(primary_key=True, autoincrement=True)
     nombre: str = column(description='Nombre del usuario')

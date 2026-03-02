@@ -11,7 +11,7 @@ class Base(DeclarativeBase):
     pass
 
 class Agenda(Base):
-    __tablename__ = "usuario"
+    __tablename__ = "agenda"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     nombre: Mapped[str]

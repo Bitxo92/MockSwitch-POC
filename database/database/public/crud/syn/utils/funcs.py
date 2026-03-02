@@ -598,5 +598,5 @@ class ExpressionParser:
 
 
 sqlalchemy_table_mapper = {
-    "usuario": Agenda,
+    "agenda": Agenda,
 }

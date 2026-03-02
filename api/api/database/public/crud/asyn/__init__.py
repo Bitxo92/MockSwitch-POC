@@ -24,7 +24,7 @@ class PublicAsyncDBAPI:
     
     Atributos:
         session_manager (AsyncSessionManager): Gestor de sesiones SQLAlchemy
-        usuario (AgendaAsyncDAO): Operaciones DAO para Agenda
+        agenda (AgendaAsyncDAO): Operaciones DAO para Agenda
     
     Ejemplos de uso:
         ```python
@@ -68,7 +68,7 @@ class PublicAsyncDBAPI:
         return self._session_manager
     
     @property
-    def usuario(self) -> AgendaAsyncDAO:
+    def agenda(self) -> AgendaAsyncDAO:
         """
         Acceso a operaciones DAO para el modelo Agenda.
         

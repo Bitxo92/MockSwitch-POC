@@ -24,7 +24,7 @@ class PublicSyncDBAPI:
     
     Atributos:
         session_manager (SyncSessionManager): Gestor de sesiones SQLAlchemy
-        usuario (AgendaSyncDAO): Operaciones CRUD para Agenda
+        agenda (AgendaSyncDAO): Operaciones CRUD para Agenda
     
     Ejemplos de uso:
         ```python
@@ -68,7 +68,7 @@ class PublicSyncDBAPI:
         return self._session_manager
     
     @property
-    def usuario(self) -> AgendaSyncDAO:
+    def agenda(self) -> AgendaSyncDAO:
         """
         Acceso a operaciones CRUD para el modelo Agenda.
         

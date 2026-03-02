@@ -350,32 +350,32 @@ class AgendaAsyncDAO:
     @error_handler
     async def create(
         self, 
-        usuario: AgendaCreate,
+        agenda: AgendaCreate,
         session: Optional[AsyncSession] = None
     ) -> AgendaRead:
         """
         Crea un nuevo registro.
         
         Args:
-            usuario: Datos del usuario a crear
+            agenda: Datos del agenda a crear
             session: Sesión existente (opcional)
             
         Returns:
             Instancia del modelo creado
         """
         logger.info(f"[public] 🆕 Creando nuevo Agenda")
-        instance = usuario.to_instance()
+        instance = agenda.to_instance()
 
         if session is not None:
             session.add(instance)
             await session.flush()  # Asegura que se genere el ID si es autoincrement
-            included = await load_relationships_from_dto(session, instance, usuario)
+            included = await load_relationships_from_dto(session, instance, agenda)
             data = AgendaRead.from_created_instance(instance, included)
         else:
             async with self.session_manager.get_session() as session:
                 session.add(instance)
                 await session.flush()  # Asegura que se genere el ID si es autoincrement
-                included = await load_relationships_from_dto(session, instance, usuario)
+                included = await load_relationships_from_dto(session, instance, agenda)
                 data = AgendaRead.from_created_instance(instance, included)
         
         logger.info(f"[public] ✅ Agenda creado exitosamente con id={getattr(data, 'id', 'N/A')}")
@@ -384,7 +384,7 @@ class AgendaAsyncDAO:
     @error_handler
     async def create_many(self, records: List[AgendaCreate], session: Optional[AsyncSession] = None) -> int:
         """
-        Crea múltiples registros en la tabla usuario.
+        Crea múltiples registros en la tabla agenda.
         
         Args:
             records: Lista de AgendaCreate con los datos de los registros

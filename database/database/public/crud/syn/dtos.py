@@ -193,10 +193,10 @@ class AgendaRead(PrettyModel):
     Tabla que almacena información de los usuarios del sistema
     
     Este modelo se utiliza como respuesta en endpoints de la API que devuelven
-    información de usuario existentes en la base de datos.
+    información de agenda existentes en la base de datos.
     
     Campos de la tabla:
-        - id (int): Campo id de la tabla usuario
+        - id (int): Campo id de la tabla agenda
         - nombre (str): Nombre del usuario
         - correo (str): Correo electrónico del usuario
         - telefono (str): Número de teléfono del usuario
@@ -208,7 +208,7 @@ class AgendaRead(PrettyModel):
     """
 
     id: int = Field(
-        description="Campo id de la tabla usuario",
+        description="Campo id de la tabla agenda",
     )
 
     nombre: str = Field(
