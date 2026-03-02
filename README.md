@@ -1,7 +1,7 @@
 <h1 align="center">
   <img src="app/frontend/src/assets/tai_logo.png" alt="TAI Logo" width="500"/>
   <br/>
-  <b>Plantilla Frontend</b>
+  <b>Mock Switch</b>
 </h1>
 <h3 align="center">
   
