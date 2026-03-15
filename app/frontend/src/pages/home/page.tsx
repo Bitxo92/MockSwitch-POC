@@ -8,7 +8,7 @@ import {
   SquarePen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/auth/useAuth";
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import {
@@ -35,10 +35,12 @@ import {
   useDeleteAgenda,
 } from "@/hooks/api/useAgenda";
 import type { Agenda } from "@/types/agenda";
+import { useUser } from "@/hooks/auth/useAuth";
 
 export default function HomePage() {
   const { logout } = useAuth();
   const { data: agendas = [], isPending: isLoadingAgendas } = useAgenda();
+  const { user } = useUser();
 
   // Store mutations as objects (not destructured)
   const createMutation = useCreateAgenda();
@@ -112,11 +114,11 @@ export default function HomePage() {
     <div className="flex min-h-screen">
       <main className="flex-1 px-2 md:py-2">
         {/**Header Container */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        <div className="grid grid-cols-2 gap-6 mb-10">
           {" "}
-          <div>
+          <div className="w-[80%]">
             {/**Title Section */}
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex items-center gap-3 mb--2">
               <BookUser className="size-8 text-primary" />
               <h1 className="text-4xl font-bold">Agenda</h1>
             </div>
@@ -125,7 +127,10 @@ export default function HomePage() {
             </p>
           </div>
           {/**Logout  button*/}
-          <div className="flex justify-end items-center">
+          <div className="flex flex-col justify-end items-center gap-2">
+            <div className="flex justify-center place-items-center mx-auto ">
+              <span>{user?.name}</span>
+            </div>
             <Button
               className="w-[20%] bg-red-600 hover:bg-red-700 hover:cursor-pointer"
               onClick={logout}

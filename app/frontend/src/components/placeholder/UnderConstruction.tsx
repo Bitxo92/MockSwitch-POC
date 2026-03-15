@@ -1,5 +1,5 @@
 import { Construction } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/auth/useAuth";
 import { Button } from "@/components/ui/button";
 
 export default function UnderConstruction() {
